@@ -1,9 +1,56 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>MCUT8N</title>
-  </head>
-  <body>
-    <h1>Hello, world!</h1>
-  </body>
-</html>
+{% extends "base.html" %} {% block body %}
+
+<div class="flex items-center">
+  <!-- Carousel 1 -->
+  <div class="w-1/2 p-20">
+    <h1 class="text-5xl font-bold">Gallery</h1>
+    <p class="mt-4 text-med">
+      Check out what MCUT 8N has been up to this year!
+    </p>
+  </div>
+  <div class="w-1/2 p-20 relative">
+    <img
+      src="https://dummyimage.com/400x200/ddd/000"
+      alt="Carousel"
+      class="w-full rounded-lg"
+    />
+    <button
+      class="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-l focus:outline-none"
+    >
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <button
+      class="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-r focus:outline-none"
+    >
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+</div>
+<div class="flex items-center">
+  <!-- Carousel 2 -->
+  <div class="w-1/2 p-20 relative">
+    <img
+      src="https://dummyimage.com/400x200/ddd/000"
+      alt="Carousel"
+      class="w-full rounded-lg"
+    />
+    <button
+      class="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-l focus:outline-none"
+    >
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <button
+      class="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-r focus:outline-none"
+    >
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+  <div class="w-1/2 p-20">
+    <h1 class="text-5xl font-bold">Upcoming Events</h1>
+    <p class="mt-4 text-med">
+      Check out what MCUT 8N has planned for the future!
+    </p>
+  </div>
+</div>
+
+{% endblock %}

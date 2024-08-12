@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block body %}
+
+<div class="flex flex-row justify-center p-20">
+  <h1 class="text-5xl font-bold">Gallery</h1>
+</div>
+
+<div class="grid grid-cols-2 gap-4 p-4">
+  <div class="bg-white rounded-lg overflow-hidden shadow-md">
+    <img
+      src="https://dummyimage.com/400x200/ddd/000"
+      alt="Image"
+      class="w-full"
+    />
+  </div>
+  <div class="bg-white rounded-lg overflow-hidden shadow-md">
+    <img
+      src="https://dummyimage.com/400x200/ddd/000"
+      alt="Image"
+      class="w-full"
+    />
+  </div>
+  <div class="bg-white rounded-lg overflow-hidden shadow-md">
+    <img
+      src="https://dummyimage.com/400x200/ddd/000"
+      alt="Image"
+      class="w-full"
+    />
+  </div>
+  <div class="bg-white rounded-lg overflow-hidden shadow-md">
+    <img
+      src="https://dummyimage.com/400x200/ddd/000"
+      alt="Image"
+      class="w-full"
+    />
+  </div>
+</div>
+
+<button
+  class="fixed bottom-20 right-5 bg-blue-500 text-white rounded-full p-8"
+  id="upload_gallery_btn"
+  hx-get="/upload_gallery_img"
+  hx-target="#content"
+>
+  <i class="fas fa-upload"></i>
+</button>
+
+{% endblock %}
