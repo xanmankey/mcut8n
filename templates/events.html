@@ -5,11 +5,11 @@
 </div>
 
 <div class="grid grid-cols-2 gap-4 p-4">
-  {% for event, rating in ratings %} {% if not event.suggestion %}
+  {% for event, rating in events.items() %} {% if not event.suggestion %}
   <div class="bg-white rounded-lg overflow-hidden shadow-md relative">
     <a href="/event/{{ event.id }}">
       <img
-        src="https://dummyimage.com/400x200/ddd/000"
+        src="{{ url_for('static', filename='imgs/' + event.img) }}"
         alt="Image"
         class="w-full"
       />
@@ -84,12 +84,12 @@
   <h1 class="text-5xl font-bold">Event ideas</h1>
 </div>
 
-{% for event, rating in ratings %}
+{% for event, rating in events.items() %}
 {% if event.suggestion %}
 <div class="bg-white rounded-lg overflow-hidden shadow-md relative">
   <a href="/event/{{ event.id }}">
     <img
-      src="https://dummyimage.com/400x200/ddd/000"
+      src="{{ url_for('static', filename='imgs/' + event.img) }}"
       alt="Image"
       class="w-full"
     />

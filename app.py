@@ -27,6 +27,7 @@ from models.rating import Rating
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from utils import Base
+import random
 
 if not load_dotenv(os.path.join(os.getcwd(), ".env")):
     print("No .env file found")
@@ -35,6 +36,7 @@ if not load_dotenv(os.path.join(os.getcwd(), ".env")):
 app = Flask(__name__)
 htmx = HTMX(app)
 DB_PATH = "data.db"
+BASE_PATH = os.path.join("static", "imgs")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -53,13 +55,19 @@ class EventView(ModelView):
         admin_username = sqlalchemy_db.session.query(AdminUsers.username).first()[0]
         admin_password = sqlalchemy_db.session.query(AdminUsers.password).first()[0]
         if (
-            session["username"] == admin_username
-            and session["password"] == admin_password
+            session.get("username") == admin_username
+            and session.get("password") == admin_password
         ):
             return True
         return False
 
-    form_overrides = {"img": FileUploadField}
+    form_extra_fields = {
+        "img": FileUploadField(
+            "Image",
+            base_path=BASE_PATH,
+            allowed_extensions=["png", "jpg", "jpeg", "webp"],
+        ),
+    }
 
 
 class GalleryView(ModelView):
@@ -67,13 +75,19 @@ class GalleryView(ModelView):
         admin_username = sqlalchemy_db.session.query(AdminUsers.username).first()[0]
         admin_password = sqlalchemy_db.session.query(AdminUsers.password).first()[0]
         if (
-            session["username"] == admin_username
-            and session["password"] == admin_password
+            session.get("username") == admin_username
+            and session.get("password") == admin_password
         ):
             return True
         return False
 
-    form_overrides = {"img": FileUploadField}
+    form_extra_fields = {
+        "img": FileUploadField(
+            "Image",
+            base_path=BASE_PATH,
+            allowed_extensions=["png", "jpg", "jpeg", "webp"],
+        ),
+    }
 
 
 class RatingView(ModelView):
@@ -81,8 +95,8 @@ class RatingView(ModelView):
         admin_username = sqlalchemy_db.session.query(AdminUsers.username).first()[0]
         admin_password = sqlalchemy_db.session.query(AdminUsers.password).first()[0]
         if (
-            session["username"] == admin_username
-            and session["password"] == admin_password
+            session.get("username") == admin_username
+            and session.get("password") == admin_password
         ):
             return True
         return False
@@ -93,18 +107,40 @@ class AdminUsersView(ModelView):
         admin_username = sqlalchemy_db.session.query(AdminUsers.username).first()[0]
         admin_password = sqlalchemy_db.session.query(AdminUsers.password).first()[0]
         if (
-            session["username"] == admin_username
-            and session["password"] == admin_password
+            session.get("username") == admin_username
+            and session.get("password") == admin_password
         ):
             return True
         return False
 
 
-admin.add_view(EventView(Event, sqlalchemy_db.session))
-# Generic model view for genres, forms, and artists
-admin.add_view(GalleryView(Gallery, sqlalchemy_db.session))
-admin.add_view(RatingView(Rating, sqlalchemy_db.session))
-admin.add_view(AdminUsersView(AdminUsers, sqlalchemy_db.session))
+with app.app_context():
+    # Configure the sqlite3 db
+    # Create the events table if it doesn't exist
+    # cur.execute(
+    #     "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, title TEXT, description TEXT, img BLOB, suggested BOOLEAN, rating INTEGER)"
+    # )
+    # cur.execute(
+    #     "CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY, img BLOB, event INTEGER, FOREIGN KEY(event) REFERENCES events(id))"
+    # )
+    # cur.execute(
+    #     "CREATE TABLE IF NOT EXISTS ratings (id INTEGER PRIMARY KEY, username TEXT, score INTEGER, event INTEGER, FOREIGN KEY(event) REFERENCES events(id))"
+    # )
+    # cur.execute(
+    #     "CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY, username TEXT, password TEXT)"
+    # )
+    # Create the tables if they don't exist
+    Base.metadata.create_all(sqlalchemy_db.engine)
+    # Create the admin user if it doesn't exist
+    if not sqlalchemy_db.session.query(AdminUsers).first():
+        admin_user = AdminUsers(username=ADMIN_USERNAME, password=ADMIN_PASSWORD)
+        sqlalchemy_db.session.add(admin_user)
+        sqlalchemy_db.session.commit()
+    admin.add_view(EventView(Event, sqlalchemy_db.session))
+    # Generic model view for genres, forms, and artists
+    admin.add_view(GalleryView(Gallery, sqlalchemy_db.session))
+    admin.add_view(RatingView(Rating, sqlalchemy_db.session))
+    admin.add_view(AdminUsersView(AdminUsers, sqlalchemy_db.session))
 
 
 @app.route("/admin/login", methods=["GET", "POST"])
@@ -147,31 +183,6 @@ def make_session_permanent():
     app.permanent_session_lifetime = timedelta(days=365)
 
 
-# Configure the sqlite3 db
-def get_db():
-    db = getattr(g, "_database", None)
-    if db is None:
-        # Create the events table if it doesn't exist
-        # cur.execute(
-        #     "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, title TEXT, description TEXT, img BLOB, suggested BOOLEAN, rating INTEGER)"
-        # )
-        # cur.execute(
-        #     "CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY, img BLOB, event INTEGER, FOREIGN KEY(event) REFERENCES events(id))"
-        # )
-        # cur.execute(
-        #     "CREATE TABLE IF NOT EXISTS ratings (id INTEGER PRIMARY KEY, username TEXT, score INTEGER, event INTEGER, FOREIGN KEY(event) REFERENCES events(id))"
-        # )
-        # cur.execute(
-        #     "CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY, username TEXT, password TEXT)"
-        # )
-        # Create the tables if they don't exist
-        Base.metadata.create_all(sqlalchemy_db.engine)
-        admin_user = AdminUsers(username=ADMIN_USERNAME, password=ADMIN_PASSWORD)
-        sqlalchemy_db.session.add(admin_user)
-        sqlalchemy_db.session.commit()
-    return sqlalchemy_db
-
-
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, "_database", None)
@@ -181,7 +192,10 @@ def close_connection(exception):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # Get all events that are not suggested
+    events = sqlalchemy_db.session.query(Event).filter_by(suggested=False).all()
+    random_event = random.choice(events)
+    return render_template("index.html", event=random_event)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -199,11 +213,11 @@ def events():
         return redirect(url_for("login"))
     username = session.get("username")
     # Create a dictionary of {event_id: rating}; if there is no rating, set it to 0
-    ratings = sqlalchemy_db.session.query(Rating).filter_by(username=username).all()
-    ratings_dict = {}
-    for rating in ratings:
-        ratings_dict[rating.event] = rating.score
-    return render_template("events.html", ratings=ratings_dict, username=username)
+    events = sqlalchemy_db.session.query(Event).order_by(Event.rating.desc()).all()
+    events_dict = {}
+    for event in events:
+        events_dict[event] = event.rating
+    return render_template("events.html", events=events_dict, username=username)
 
 
 @app.route("/event/<int:id>")
@@ -215,7 +229,13 @@ def event(id):
         img = event.img
     else:
         abort(404)
-    return render_template("event.html", title=title, description=description, img=img)
+    return render_template(
+        "event.html",
+        title=title,
+        description=description,
+        img=img,
+        date_time=event.date_time,
+    )
 
 
 @app.route("/rate_event/<int:rating>/<int:id>/<string:username>", methods=["POST"])

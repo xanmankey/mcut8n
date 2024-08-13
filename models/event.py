@@ -8,6 +8,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
-    img = Column(LargeBinary)
+    date_time = Column(String, nullable=False)
+    img = Column(String, nullable=False)
     suggested = Column(Boolean)
     rating = Column(Integer, default=0)

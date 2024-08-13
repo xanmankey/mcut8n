@@ -2,14 +2,16 @@
 
 <div class="relative h-screen">
   <img
-    src="https://dummyimage.com/1920x1080/ddd/000"
-    alt="Placeholder image"
-    class="w-full h-full object-cover"
+    src="{{ url_for('static', filename='imgs/' + img) }}"
+    alt="Event background"
+    class="w-full h-full object-cover opacity-50"
   />
+
   <div class="absolute inset-0 flex items-center justify-center">
     <div class="text-center">
-      <h1 class="text-4xl font-bold text-white">{{ title }}</h1>
-      <p class="text-lg text-white">{{ description }}</p>
+      <span class="text-8xl font-bold text-black">{{ title }}</span>
+      <p class="text-6xl text-black">{{ description }}</p>
+      <p class="text-6xl text-black">{{ date_time }}</p>
     </div>
   </div>
 </div>
