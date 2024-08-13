@@ -29,9 +29,10 @@ from flask_sqlalchemy import SQLAlchemy
 from utils import Base
 import random
 
-if not load_dotenv(os.path.join(os.getcwd(), ".env")):
-    print("No .env file found")
-    exit()
+# if not load_dotenv(os.path.join(os.getcwd(), ".env")):
+#     print("No .env file found")
+#     exit()
+load_dotenv()
 
 app = Flask(__name__)
 htmx = HTMX(app)
@@ -61,6 +62,10 @@ class EventView(ModelView):
             return True
         return False
 
+    @property
+    def column_list(self):
+        return ["id"] + self.scaffold_list_columns()
+
     form_extra_fields = {
         "img": FileUploadField(
             "Image",
@@ -80,6 +85,10 @@ class GalleryView(ModelView):
         ):
             return True
         return False
+
+    @property
+    def column_list(self):
+        return ["id", "event_id"] + self.scaffold_list_columns()
 
     form_extra_fields = {
         "img": FileUploadField(
@@ -101,6 +110,10 @@ class RatingView(ModelView):
             return True
         return False
 
+    @property
+    def column_list(self):
+        return ["id", "event_id"] + self.scaffold_list_columns()
+
 
 class AdminUsersView(ModelView):
     def is_accessible(self):
@@ -112,6 +125,10 @@ class AdminUsersView(ModelView):
         ):
             return True
         return False
+
+    @property
+    def column_list(self):
+        return ["id"] + self.scaffold_list_columns()
 
 
 with app.app_context():
@@ -212,11 +229,21 @@ def events():
     if not session.get("username"):
         return redirect(url_for("login"))
     username = session.get("username")
-    # Create a dictionary of {event_id: rating}; if there is no rating, set it to 0
+    # Create a dictionary of {id: rating}; if there is no rating, set it to 0
     events = sqlalchemy_db.session.query(Event).order_by(Event.rating.desc()).all()
     events_dict = {}
+    user_score = 0
     for event in events:
-        events_dict[event] = event.rating
+        try:
+            rating = (
+                sqlalchemy_db.session.query(Rating)
+                .filter_by(event_id=event.id, username=username)
+                .first()
+            )
+            user_score = rating.score
+        except Exception as e:
+            pass
+        events_dict[event] = user_score
     return render_template("events.html", events=events_dict, username=username)
 
 
@@ -238,83 +265,36 @@ def event(id):
     )
 
 
-@app.route("/rate_event/<int:rating>/<int:id>/<string:username>", methods=["POST"])
+@app.route(
+    "/rate_event/<int(signed=True):rating>/<int:id>/<string:username>", methods=["GET"]
+)
 def rate_event(rating, id, username):
-    rating_obj = (
-        sqlalchemy_db.session.query(Rating)
-        .filter_by(event=id, username=username)
-        .first()[0]
-    )
-    if rating_obj:
-        rating_obj.score = rating
+    event = sqlalchemy_db.session.query(Event).filter_by(id=id).first()
+    if not event:
+        abort(404)
     else:
-        rating_obj = Rating(event=id, username=username, score=rating)
-        sqlalchemy_db.session.add(rating_obj)
+        # Try and find an existing rating and update it
+        rating_obj = (
+            sqlalchemy_db.session.query(Rating)
+            .filter_by(event_id=id, username=username)
+            .first()
+        )
+        if rating_obj:
+            # Update the user's rating and the event rating
+            current_rating = rating_obj.score
+            # If the ratings are the same, toggle the rating off (0)
+            if current_rating == rating:
+                rating_obj.score = 0
+                event.rating -= current_rating
+            else:
+                rating_obj.score = rating
+                event.rating += rating - current_rating
+        else:
+            # Create a new rating for the event
+            rating_obj = Rating(event_id=id, username=username, score=rating)
+            sqlalchemy_db.session.add(rating_obj)
     sqlalchemy_db.session.commit()
-    if rating == 1:
-        return f"""
-    <div class="p-4">
-      <button
-        class="absolute px-2 py-1 left-0 bottom-[2%] bg-gray-200 rounded-full hover:bg-white"
-        id="thumbs_up_{{ loop.index }}"
-        hx-post="/rate_event/1/{{ event_id }}/{{ username }}"
-        hx-target="#thumbs_up_{{ loop.index }}"
-      >
-        <i class="far fa-thumbs-up text-blue-800"></i>
-      </button>
-      <h2 class="text-xl font-bold text-center">{{ event.title }}</h2>
-      <button
-        class="absolute px-2 py-1 right-0 bottom-[2%] bg-gray-200 rounded-full p-1 hover:bg-white"
-        id="thumbs_down_{{ loop.index }}"
-      >
-        <i class="far fa-thumbs-down text-gray-500 hover:text-red-800"></i>
-      </button>
-    </div>
-"""
-    elif rating == -1:
-        return """
-        <div class="p-4">
-      <button
-        class="absolute px-2 py-1 left-0 bottom-[2%] bg-gray-200 rounded-full hover:bg-white"
-        id="thumbs_up_{{ loop.index }}"
-        hx-post="/rate_event/1/{{ event_id }}/{{ username }}"
-        hx-target="#thumbs_up_{{ loop.index }}"
-      >
-        <i class="far fa-thumbs-up text-gray-500 hover:text-blue-800"></i>
-      </button>
-      <h2 class="text-xl font-bold text-center">{{ event.title }}</h2>
-      <button
-        class="absolute px-2 py-1 right-0 bottom-[2%] bg-gray-200 rounded-full p-1 hover:bg-white"
-        id="thumbs_down_{{ loop.index }}"
-        hx-post="/rate_event/-1/{{ event_id }}/{{ username }}"
-        hx-target="#thumbs_up_{{ loop.index }}"
-      >
-        <i class="far fa-thumbs-down text-gray-500 hover:text-red-800"></i>
-      </button>
-    </div>
-"""
-    else:
-        return """
-<div class="p-4">
-      <button
-        class="absolute px-2 py-1 left-0 bottom-[2%] bg-gray-200 rounded-full hover:bg-white"
-        id="thumbs_up_{{ loop.index }}"
-        hx-post="/rate_event/1/{{ event_id }}/{{ username }}"
-        hx-target="#thumbs_up_{{ loop.index }}"
-      >
-        <i class="far fa-thumbs-up text-gray-500 hover:text-blue-800"></i>
-      </button>
-      <h2 class="text-xl font-bold text-center">{{ event.title }}</h2>
-      <button
-        class="absolute px-2 py-1 right-0 bottom-[2%] bg-gray-200 rounded-full p-1 hover:bg-white"
-        id="thumbs_down_{{ loop.index }}"
-        hx-post="/rate_event/-1/{{ event_id }}/{{ username }}"
-        hx-target="#thumbs_up_{{ loop.index }}"
-      >
-        <i class="far fa-thumbs-down text-red-800"></i>
-      </button>
-    </div>
-"""
+    return redirect(url_for("events"))
 
 
 @app.route("/gallery")
