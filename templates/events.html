@@ -51,7 +51,7 @@
         hx-get="/rate_event/-1/{{ event.id }}/{{ username }}"
         hx-target="#content"
       >
-        <i class="far fa-thumbs-down text-gray-500 hover:text-red-800"></i>
+        <i class="far fa-thumbs-down text-red-800"></i>
       </button>
     </div>
     {% else %}
@@ -71,7 +71,7 @@
         hx-get="/rate_event/-1/{{ event.id }}/{{ username }}"
         hx-target="#content"
       >
-        <i class="far fa-thumbs-down text-red-800"></i>
+        <i class="far fa-thumbs-down text-gray-500 hover:text-red-800"></i>
       </button>
     </div>
     {% endif %}
@@ -131,7 +131,7 @@
       hx-get="/rate_event/-1/{{ event.id }}/{{ username }}"
       hx-target="#content"
     >
-      <i class="far fa-thumbs-down text-gray-500 hover:text-red-800"></i>
+      <i class="far fa-thumbs-down text-red-800"></i>
     </button>
   </div>
   {% else %}
@@ -151,7 +151,7 @@
       hx-get="/rate_event/-1/{{ event.id }}/{{ username }}"
       hx-target="#content"
     >
-      <i class="far fa-thumbs-down text-red-800"></i>
+      <i class="far fa-thumbs-down text-gray-500 hover:text-red-800"></i>
     </button>
   </div>
   {% endif %}

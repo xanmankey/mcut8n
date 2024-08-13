@@ -232,7 +232,6 @@ def events():
     # Create a dictionary of {id: rating}; if there is no rating, set it to 0
     events = sqlalchemy_db.session.query(Event).order_by(Event.rating.desc()).all()
     events_dict = {}
-    user_score = 0
     for event in events:
         try:
             rating = (
@@ -240,10 +239,11 @@ def events():
                 .filter_by(event_id=event.id, username=username)
                 .first()
             )
-            user_score = rating.score
+            events_dict[event] = rating.score
+            if rating.score == -1:
+                print("Rating is -1")
         except Exception as e:
-            pass
-        events_dict[event] = user_score
+            events_dict[event] = 0
     return render_template("events.html", events=events_dict, username=username)
 
 
@@ -270,6 +270,8 @@ def event(id):
 )
 def rate_event(rating, id, username):
     event = sqlalchemy_db.session.query(Event).filter_by(id=id).first()
+    print(rating)
+    print(id)
     if not event:
         abort(404)
     else:
@@ -293,6 +295,7 @@ def rate_event(rating, id, username):
             # Create a new rating for the event
             rating_obj = Rating(event_id=id, username=username, score=rating)
             sqlalchemy_db.session.add(rating_obj)
+            event.rating += rating
     sqlalchemy_db.session.commit()
     return redirect(url_for("events"))
 
