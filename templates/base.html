@@ -38,27 +38,13 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
   </head>
   <body class="bg-gray-100 font-sans h-screen">
-    <nav
-      class="w-full bg-gradient-to-r from-teal-500 to-purple-500 shadow-lg rounded-lg flex justify-between items-center fixed top-0 z-10"
-    >
-      <a
-        href="/"
-        class="mx-4 text-white text-xl hover:font-extrabold space-x-0 p-3 pt-3"
-        >M<sup>c</sup>Cutcheon 8N</a
-      >
+    <nav class="w-full bg-gradient-to-r from-teal-500 to-purple-500 shadow-lg rounded-lg flex justify-between items-center top-0 z-10 flex-wrap">
+      <a href="/" class="mx-4 text-white text-xl hover:font-extrabold space-x-0 p-3 pt-3">M<c>Cutcheon 8N</a>
       <div class="flex justify-end">
-        <a
-          href="/events"
-          class="mx-4 text-white text-xl hover:font-extrabold space-x-0 p-3 pt-3"
-          >Events</a
-        >
-        <a
-          href="/gallery"
-          class="mx-4 text-white text-xl hover:font-extrabold space-x-0 p-3 pt-3"
-          >Gallery</a
-        >
+        <a href="/events" class="mx-4 text-white text-xl hover:font-extrabold space-x-0 p-3 pt-3">Events</a>
+        <a href="/gallery" class="mx-4 text-white text-xl hover:font-extrabold space-x-0 p-3 pt-3">Gallery</a>
       </div>
-    </nav>
+    </nav>    
     <div id="content" class="pb-20">{% block body %}{% endblock %}</div>
     <footer
       class="w-full bg-white shadow-lg flex justify-center items-center fixed bottom-0"

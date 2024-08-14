@@ -679,6 +679,10 @@ video {
   flex-direction: column;
 }
 
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .items-center {
   align-items: center;
 }
@@ -1066,6 +1070,10 @@ video {
 
   .lg\:flex-col {
     flex-direction: column;
+  }
+
+  .lg\:text-center {
+    text-align: center;
   }
 
   .lg\:text-2xl {
