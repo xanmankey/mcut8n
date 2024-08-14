@@ -212,7 +212,9 @@ def home():
     # Get all events that are not suggested
     events = sqlalchemy_db.session.query(Event).filter_by(suggested=False).all()
     random_event = random.choice(events)
-    return render_template("index.html", event=random_event)
+    gallery = sqlalchemy_db.session.query(Gallery).all()
+    random_gallery = random.choice(gallery)
+    return render_template("index.html", event=random_event, gallery=random_gallery)
 
 
 @app.route("/login", methods=["GET", "POST"])
