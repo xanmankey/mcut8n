@@ -655,8 +655,16 @@ video {
   height: 100vh;
 }
 
+.w-1\/2 {
+  width: 50%;
+}
+
 .w-full {
   width: 100%;
+}
+
+.flex-shrink {
+  flex-shrink: 1;
 }
 
 .grid-cols-2 {
@@ -1052,6 +1060,10 @@ video {
 }
 
 @media (max-width: 1024px) {
+  .lg\:w-1\/2 {
+    width: 50%;
+  }
+
   .lg\:flex-col {
     flex-direction: column;
   }
