@@ -1,20 +1,39 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./templates/**/*.html", "./static/src/**/*.js"],
+  content: ["./templates/**/*.html", "./static/**/*.js"],
+  safelist: [
+    // Font sizes
+    "text-xs",
+    "text-sm",
+    "text-tiny",
+    "text-base",
+    "text-lg",
+    "text-xl",
+    "text-2xl",
+    "text-3xl",
+    "text-4xl",
+    "text-5xl",
+    "text-6xl",
+    "text-7xl",
+    "text-8xl",
+    "text-9xl",
+  ],
   theme: {
-    fontSize: {
-      xs: ".75rem",
-      sm: ".875rem",
-      tiny: ".875rem",
-      base: "1rem",
-      lg: "1.125rem",
-      xl: "1.25rem",
-      "2xl": "1.5rem",
-      "3xl": "1.875rem",
-      "4xl": "2.25rem",
-      "5xl": "3rem",
-      "6xl": "4rem",
-      "7xl": "5rem",
+    screens: {
+      sm: { max: "640px" },
+      // => @media (min-width: 640px) { ... }
+
+      md: { max: "768px" },
+      // => @media (min-width: 768px) { ... }
+
+      lg: { max: "1024px" },
+      // => @media (min-width: 1024px) { ... }
+
+      xl: { max: "1280px" },
+      // => @media (min-width: 1280px) { ... }
+
+      "2xl": { max: "1536px" },
+      // => @media (min-width: 1536px) { ... }
     },
   },
   plugins: [],
