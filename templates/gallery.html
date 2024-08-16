@@ -5,34 +5,15 @@
 </div>
 
 <div class="grid grid-cols-2 gap-4 p-4">
+  {% for img in gallery %}
   <div class="bg-white rounded-lg overflow-hidden shadow-md">
     <img
-      src="https://dummyimage.com/400x200/ddd/000"
+      src="{{ url_for('static', filename='imgs/' + img) }}"
       alt="Image"
       class="w-full"
     />
   </div>
-  <div class="bg-white rounded-lg overflow-hidden shadow-md">
-    <img
-      src="https://dummyimage.com/400x200/ddd/000"
-      alt="Image"
-      class="w-full"
-    />
-  </div>
-  <div class="bg-white rounded-lg overflow-hidden shadow-md">
-    <img
-      src="https://dummyimage.com/400x200/ddd/000"
-      alt="Image"
-      class="w-full"
-    />
-  </div>
-  <div class="bg-white rounded-lg overflow-hidden shadow-md">
-    <img
-      src="https://dummyimage.com/400x200/ddd/000"
-      alt="Image"
-      class="w-full"
-    />
-  </div>
+  {% endfor %}
 </div>
 
 <button

@@ -4,7 +4,7 @@ import os
 from flask_admin import Admin, expose
 from flask_admin import helpers as admin_helpers
 from flask_admin.model.template import macro, EndpointLinkRowAction, LinkRowAction
-from flask_admin.form import FileUploadInput, FileUploadField
+from flask_admin.form import FileUploadInput, FileUploadField, Select2Field
 from flask_admin.contrib.sqla import ModelView
 from flask import (
     Flask,
@@ -90,13 +90,21 @@ class GalleryView(ModelView):
     def column_list(self):
         return ["id", "event_id"] + self.scaffold_list_columns()
 
-    form_extra_fields = {
-        "img": FileUploadField(
-            "Image",
-            base_path=BASE_PATH,
-            allowed_extensions=["png", "jpg", "jpeg", "webp"],
-        ),
-    }
+    with app.app_context():
+        form_extra_fields = {
+            "img": FileUploadField(
+                "Image",
+                base_path=BASE_PATH,
+                allowed_extensions=["png", "jpg", "jpeg", "webp"],
+            ),
+            "event_id": Select2Field(
+                "Event",
+                choices=[
+                    (event.id, event.title)
+                    for event in sqlalchemy_db.session.query(Event).all()
+                ],
+            ),
+        }
 
 
 class RatingView(ModelView):
@@ -232,7 +240,21 @@ def events():
         return redirect(url_for("login"))
     username = session.get("username")
     # Create a dictionary of {id: rating}; if there is no rating, set it to 0
-    events = sqlalchemy_db.session.query(Event).order_by(Event.rating.desc()).all()
+    events = (
+        sqlalchemy_db.session.query(Event)
+        .filter_by(suggested=False)
+        .order_by(Event.date_time.asc())
+        .all()
+    )
+    # Order the suggested events (no date time) by rating
+    suggested_events = (
+        sqlalchemy_db.session.query(Event)
+        .filter_by(suggested=True)
+        .order_by(Event.rating.desc())
+        .all()
+    )
+    # Combine the two lists
+    events.extend(suggested_events)
     events_dict = {}
     for event in events:
         try:
@@ -304,11 +326,28 @@ def rate_event(rating, id, username):
 
 @app.route("/gallery")
 def gallery():
-    return render_template("gallery.html")
+    gallery = sqlalchemy_db.session.query(Gallery).all()
+    # Sort by event date descending
+    print(gallery[0].event_id)
+    gallery.sort(
+        key=lambda x: (
+            sqlalchemy_db.session.query(Event)
+            .filter(Event.id == x.event_id)
+            .first()
+            .date_time
+            if x.event_id
+            else None
+        ),
+        reverse=True,
+    )
+    return render_template(
+        "gallery.html", gallery=[gallery_inst.img for gallery_inst in gallery]
+    )
 
 
 @app.route("/create_event", methods=["GET", "POST"])
 def create_event():
+
     if request.method == "GET":
         return render_template("create_event.html")
     elif request.method == "POST":
