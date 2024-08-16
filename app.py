@@ -246,6 +246,8 @@ def events():
         .order_by(Event.date_time.asc())
         .all()
     )
+    # Make the events without a date or time at the end
+    events.sort(key=lambda x: x.date_time is None)
     # Order the suggested events (no date time) by rating
     suggested_events = (
         sqlalchemy_db.session.query(Event)
