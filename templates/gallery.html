@@ -16,13 +16,12 @@
   {% endfor %}
 </div>
 
-<button
-  class="fixed bottom-20 right-5 bg-blue-500 text-white rounded-full p-8"
-  id="upload_gallery_btn"
-  hx-get="/upload_gallery_img"
-  hx-target="#content"
->
-  <i class="fas fa-upload"></i>
-</button>
-
+<form action="/upload_gallery_img" method="get">
+  <button
+    class="fixed bottom-20 right-5 bg-blue-500 text-white rounded-full p-8"
+    id="upload_gallery_btn"
+  >
+    <i class="fas fa-upload"></i>
+  </button>
+</form>
 {% endblock %}

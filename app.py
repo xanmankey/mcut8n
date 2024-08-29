@@ -49,6 +49,14 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 # Flask admin setup
 admin = Admin(app, name="MCUT 8N", template_mode="bootstrap4")
+with app.app_context():
+    # Configure the sqlite3 db
+    Base.metadata.create_all(sqlalchemy_db.engine)
+    # Create the admin user if it doesn't exist
+    if not sqlalchemy_db.session.query(AdminUsers).first():
+        admin_user = AdminUsers(username=ADMIN_USERNAME, password=ADMIN_PASSWORD)
+        sqlalchemy_db.session.add(admin_user)
+        sqlalchemy_db.session.commit()
 
 
 class EventView(ModelView):
@@ -140,27 +148,7 @@ class AdminUsersView(ModelView):
 
 
 with app.app_context():
-    # Configure the sqlite3 db
-    # Create the events table if it doesn't exist
-    # cur.execute(
-    #     "CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, title TEXT, description TEXT, img BLOB, suggested BOOLEAN, rating INTEGER)"
-    # )
-    # cur.execute(
-    #     "CREATE TABLE IF NOT EXISTS gallery (id INTEGER PRIMARY KEY, img BLOB, event INTEGER, FOREIGN KEY(event) REFERENCES events(id))"
-    # )
-    # cur.execute(
-    #     "CREATE TABLE IF NOT EXISTS ratings (id INTEGER PRIMARY KEY, username TEXT, score INTEGER, event INTEGER, FOREIGN KEY(event) REFERENCES events(id))"
-    # )
-    # cur.execute(
-    #     "CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY, username TEXT, password TEXT)"
-    # )
-    # Create the tables if they don't exist
-    Base.metadata.create_all(sqlalchemy_db.engine)
-    # Create the admin user if it doesn't exist
-    if not sqlalchemy_db.session.query(AdminUsers).first():
-        admin_user = AdminUsers(username=ADMIN_USERNAME, password=ADMIN_PASSWORD)
-        sqlalchemy_db.session.add(admin_user)
-        sqlalchemy_db.session.commit()
+    # Configure the admin views
     admin.add_view(EventView(Event, sqlalchemy_db.session))
     # Generic model view for genres, forms, and artists
     admin.add_view(GalleryView(Gallery, sqlalchemy_db.session))
@@ -287,7 +275,9 @@ def event(id):
         title=title,
         description=description,
         img=img,
-        date_time=event.date_time,
+        logistics=event.logistics,
+        title_color=event.title_text_color.value,
+        info_color=event.info_text_color.value,
     )
 
 
@@ -331,6 +321,10 @@ def gallery():
     gallery = sqlalchemy_db.session.query(Gallery).all()
     # Sort by event date descending
     print(gallery[0].event_id)
+    no_ids = []
+    for gall in gallery:
+        if gall.event_id == None:
+            no_ids.append(gallery.pop(gallery.index(gall)))
     gallery.sort(
         key=lambda x: (
             sqlalchemy_db.session.query(Event)
@@ -342,6 +336,7 @@ def gallery():
         ),
         reverse=True,
     )
+    gallery += no_ids
     return render_template(
         "gallery.html", gallery=[gallery_inst.img for gallery_inst in gallery]
     )
@@ -349,15 +344,20 @@ def gallery():
 
 @app.route("/create_event", methods=["GET", "POST"])
 def create_event():
-
     if request.method == "GET":
         return render_template("create_event.html")
     elif request.method == "POST":
         title = request.form["title"]
         description = request.form["description"]
-        img = request.files.get("image", "").read()
+        img = request.files.get("image")
+        # Save img to static/imgs
+        img.save(os.path.join(BASE_PATH, img.filename))
         event = Event(
-            title=title, description=description, img=img, suggested=True, rating=1
+            title=title,
+            description=description,
+            img=img.filename,
+            suggested=True,
+            rating=1,
         )
         sqlalchemy_db.session.add(event)
         sqlalchemy_db.session.commit()
@@ -367,12 +367,19 @@ def create_event():
 @app.route("/upload_gallery_img", methods=["GET", "POST"])
 def upload_gallery_img():
     if request.method == "GET":
-        return render_template("upload_gallery.html")
-    elif request.method == "POST":
-        img = request.files.get("image", "").read()
-        event = request.form["event"]
         session = sqlalchemy_db.session
-        gallery = Gallery(img=img, event=event)
+        return render_template("upload_gallery.html", events=session.query(Event).all())
+    elif request.method == "POST":
+        img = request.files.get("image")
+        img.save(os.path.join(BASE_PATH, img.filename))
+        print(request.form)
+        event = request.form["event"]
+        event_id = (
+            sqlalchemy_db.session.query(Event.id).filter_by(title=event).first()[0]
+        )
+        print(event_id)
+        session = sqlalchemy_db.session
+        gallery = Gallery(img=img.filename, event_id=event_id)
         session.add(gallery)
         session.commit()
 

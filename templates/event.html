@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block body %}
+{% extends "empty_base.html" %} {% block body %}
 
 <div class="relative h-screen">
   <img
@@ -7,12 +7,28 @@
     class="w-full h-full object-cover opacity-50"
   />
 
-  <div class="absolute inset-0 flex items-center justify-center">
-    <div class="text-center">
-      <span class="text-8xl xl:text-6xl lg:text-4xl sm:text-xl font-bold text-black py-5 md:py-3">{{ title }}</span>
-      <p class="text-6xl xl:text-4xl lg:text-2xl sm:text-xl text-black py-5 md:py-3">{{ description }}</p>
-      <p class="text-6xl xl:text-4xl lg:text-2xl sm:text-xl text-black py-5 md:py-3">{{ date_time }}</p>
+  <div class="absolute inset-0 flex flex-col justify-between">
+    <!-- Title at the top -->
+    <div class="text-center mt-5">
+      <span
+        class="text-8xl xl:text-6xl lg:text-4xl sm:text-xl font-bold py-5 md:py-3 text-{{ title_color }}"
+      >
+        {{ title }}
+      </span>
     </div>
+
+    <!-- Description and logistics at the bottom -->
+    <div class="text-center mb-5">
+      <p
+        class="text-6xl xl:text-4xl lg:text-2xl sm:text-xl py-5 md:py-3 text-{{ info_color }}"
+      >
+        {{ description }}
+      </p>
+      <p
+        class="text-6xl xl:text-4xl lg:text-2xl sm:text-xl py-5 md:py-3 text-{{ info_color }}"
+      >
+        {{ logistics }}
+      </p>
     </div>
   </div>
 </div>

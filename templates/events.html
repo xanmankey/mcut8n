@@ -171,13 +171,13 @@
   {% endif %} {% endfor %}
 </div>
 
-<button
-  class="fixed bottom-20 right-5 bg-blue-500 text-white rounded-full p-8"
-  id="create_event_btn"
-  hx-get="/create_event"
-  hx-target="#content"
->
-  <i class="fas fa-plus"></i>
-</button>
+<form action="/create_event" method="get">
+  <button
+    class="fixed bottom-20 right-5 bg-blue-500 text-white rounded-full p-8"
+    id="create_event_btn"
+  >
+    <i class="fas fa-plus"></i>
+  </button>
+</form>
 
 {% endblock %}
